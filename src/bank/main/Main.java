@@ -6,6 +6,7 @@ import bank.service.UserService;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.sql.SQLException;
 
 public class Main {
 
@@ -13,7 +14,7 @@ public class Main {
     static Main main = new Main();
     static UserService userService = new UserService();
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws SQLException{
 
         while(true) {
             System.out.println("Enter your username:");
@@ -41,34 +42,30 @@ public class Main {
         String username = "";
 
         while(flag) {
-            System.out.println("1. Logout");
-            System.out.println("2. Create a customer account");
-            System.out.println("3. See customer's all Transactions");
-            System.out.println("4. Check account balance");
-            System.out.println("5. Approve cheque book request ");
+            System.out.println("1. Create a customer account");
+            System.out.println("2. See customer's all Transactions");
+            System.out.println("3. Check account balance");
+            System.out.println("4. Approve cheque book request ");
+            System.out.println("5. Logout");
 
             int opt = scan.nextInt();
 
             switch (opt) {
                 case 1:
-                    flag = false;
-                    System.out.println("You have successfully logged out...");
-                    break;
-                case 2:
                     main.addNewCustomer();
                     break;
-                case 3:
+                case 2:
                     System.out.println("Enter username:");
                     username = scan.next();
                     main.printTransaction(username);
                     break;
-                case 4:
+                case 3:
                     System.out.println("Enter username:");
                     username = scan.next();
                     Double res = main.checkAccountBalance(username);
                     System.out.println(username+"'s balance is  "+res);
                     break;
-                case 5:
+                case 4:
                   List<String> listofusers = getAllchequebookrequest();
                     System.out.println("Select the username from the below");
                     System.out.println(listofusers);
@@ -78,6 +75,10 @@ public class Main {
 
                     System.out.println("Cheque book request is approved..");
 
+                    break;
+                case 5:
+                    flag = false;
+                    System.out.println("You have successfully logged out...");
                     break;
                 default:
                     System.out.println("Wrong choice");
@@ -100,13 +101,18 @@ public class Main {
         String password = scan.next();
         System.out.println("Enter contact number:");
         String contact = scan.next();
+        System.out.println("Enter initial amount to deposit:");
+        Double amt = scan.nextDouble();
 
-        boolean res = userService.addNewCustomer(username,password,contact);
-
-        if(res) {
-            System.out.println("Customer account is created...");
-        } else {
-            System.out.println("Customer account is creation failed !!!");
+        try {
+            boolean res = userService.addNewCustomer(username, password, contact, amt);
+            if (res) {
+                System.out.println("Customer account is created...");
+            } else {
+                System.out.println("Customer account creation failed !!!");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error while creating customer account: " + e.getMessage());
         }
 
     }
@@ -115,20 +121,16 @@ public class Main {
         boolean flag = true;
 
         while(flag) {
-            System.out.println("1. Logout");
-            System.out.println("2. Check account balance:");
-            System.out.println("3. Amount transfer:");
-            System.out.println("4. Transaction History:");
-            System.out.println("5. Raise chequebook rquest:");
+            System.out.println("1. Check account balance:");
+            System.out.println("2. Amount transfer:");
+            System.out.println("3. Transaction History:");
+            System.out.println("4. Raise chequebook rquest:");
+            System.out.println("5. Logout");
 
             int opt = scan.nextInt();
 
             switch (opt) {
                 case 1:
-                    flag = false;
-                    System.out.println("You have successfully logged out...");
-                    break;
-                case 2:
                     Double balance = main.checkAccountBalance(user.getUsername());
                     if(balance != null) {
                         System.out.println("Your Bank Balance is : "+balance);
@@ -136,13 +138,13 @@ public class Main {
                         System.out.println("Check your username");
                     }
                     break;
-                case 3:
+                case 2:
                     main.AmountTransfer(user);
                     break;
-                case 4:
+                case 3:
                     main.printTransaction(user.getUsername());
                     break;
-                case 5:
+                case 4:
                     String username = user.getUsername();
                     Map<String, Boolean> map = getChequebookrequest();
 
@@ -154,6 +156,10 @@ public class Main {
                         main.raiseChequebook(username);
                         System.out.println("Request raised successfully...");
                     }
+                    break;
+                case 5:
+                    flag = false;
+                    System.out.println("You have successfully logged out...");
                     break;
                 default:
                     System.out.println("Wrong choice");

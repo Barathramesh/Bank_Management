@@ -3,6 +3,7 @@ package bank.service;
 import bank.entity.User;
 import bank.operations.UserRepository;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
@@ -16,8 +17,8 @@ public class UserService {
        return userrepo.login( username,password);
     }
 
-    public boolean addNewCustomer(String username, String password, String contact) {
-        return userrepo.addNewCustomer(username,password,contact);
+    public boolean addNewCustomer(String username, String password, String contact,Double amt) throws SQLException {
+        return userrepo.addNewCustomer(username,password,contact,amt);
     }
 
     public Double checkAccountBalance(String username) {

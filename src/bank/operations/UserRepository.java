@@ -2,8 +2,14 @@ package bank.operations;
 
 import bank.entity.Transaction;
 import bank.entity.User;
+import bank.service.DbConnection;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class UserRepository {
@@ -12,11 +18,12 @@ public class UserRepository {
     private static final ArrayList<Transaction> transactions = new ArrayList<>();
     private static final HashMap<String, Boolean> chequebookrequest = new HashMap<>();
 
+
     static {
-        User user1 = new User("admin","admin", "123456780","admin",0.0);
-        User user2 = new User("barath","12345", "9843277225","user",1000.0);
-        User user3 = new User("kavin","12346", "9843177225","user",5000.0);
-        User user4 = new User("deepak","12347", "9843177225","user",5000.0);
+        User user1 = new User("admin","admin", "123456780","admin",0.0,"0.0");
+        User user2 = new User("barath","12345", "9843277225","user",1000.0,"AC2507192013442169");
+        User user3 = new User("kavin","12346", "9843177225","user",5000.0,"AC2507192014383706");
+        User user4 = new User("deepak","12347", "9843177225","user",5000.0,"AC2507192014499168");
 
         users.add(user1);
         users.add(user2);
@@ -78,7 +85,7 @@ public class UserRepository {
         );
 
         transactions.add(transaction);
-        System.out.println(transaction);
+
 
         return users.add(user);
     }
@@ -103,7 +110,7 @@ public class UserRepository {
         );
 
         transactions.add(transaction);
-        System.out.println(transaction);
+
 
         return users.add(user);
     }
@@ -159,9 +166,30 @@ public class UserRepository {
        }
     }
 
-    public boolean addNewCustomer(String username, String password, String contact) {
-        User user = new User(username,password,contact,"user",500.0);
-        return users.add(user);
+    public boolean addNewCustomer(String username, String password, String contact,Double amt) throws SQLException {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyMMddHHmmss");
+        String timestamp = LocalDateTime.now().format(dtf);
+        int random = new Random().nextInt(9000) + 1000;
+        String accountNumber = "AC"+timestamp+random;
+
+        User user = new User(username,password,contact,"user",amt,accountNumber);
+        String query = "INSERT INTO users (account_number, username, password, contact_number, email, account_balance) VALUES (?, ?, ?, ?, ?, ?)";
+
+        try {
+
+            Connection con = DbConnection.getConnection();
+            PreparedStatement pst = con.prepareStatement(query);
+            pst.setString(1, user.getAccountNumber());
+            pst.setString(2, user.getUsername());
+            pst.setString(3, user.getPassword());
+            pst.setString(4, user.getContactNum());
+            pst.setString(5, "dummy@email.com");
+            pst.setDouble(6, user.getAccountBalance());
+            int rowsAffected = pst.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }
