@@ -10,14 +10,16 @@ public class User {
     private String role;
     private Double accountBalance;
     private String accountNumber;
+    private String email;
 
-    public User(String username, String password, String contactNum, String role, Double accountBalance, String accountNumber) {
+    public User(String username, String password, String contactNum, String role, Double accountBalance, String accountNumber,String email) {
         this.username = username;
         this.password = password;
         this.contactNum = contactNum;
         this.role = role;
         this.accountBalance = accountBalance;
         this.accountNumber = accountNumber;
+        this.email = email;
     }
 
     public String getUsername() {
@@ -64,9 +66,10 @@ public class User {
         return accountNumber;
     }
 
-    public void setAccountNumber(String accountNumber) {
-        this.accountNumber = accountNumber;
+    public String getEmail() {
+        return email;
     }
+
 
     @Override
     public String toString() {
@@ -77,6 +80,7 @@ public class User {
                 ", role='" + role + '\'' +
                 ", accountBalance=" + accountBalance +
                 ", accountNumber='" + accountNumber + '\'' +
+                ", email='" + email + '\'' +
                 '}';
     }
 

@@ -13,15 +13,15 @@ public class UserService {
 
     public void printUser() { userrepo.printUsers(); }
 
-    public User login(String username, String password) {
+    public String login(String username, String password) throws SQLException {
        return userrepo.login( username,password);
     }
 
-    public boolean addNewCustomer(String username, String password, String contact,Double amt) throws SQLException {
-        return userrepo.addNewCustomer(username,password,contact,amt);
+    public boolean addNewCustomer(String username, String password, String contact,Double amt,String email) throws SQLException {
+        return userrepo.addNewCustomer(username,password,contact,amt,email);
     }
 
-    public Double checkAccountBalance(String username) {
+    public Double checkAccountBalance(String username)  throws SQLException{
         return userrepo.checkAccountBalance(username);
     }
 
@@ -33,7 +33,7 @@ public class UserService {
         return userrepo.transferAmount(username,receivername,amt);
     }
 
-    public void printTransaction(String username) {
+    public void printTransaction(String username) throws SQLException {
       userrepo.printTransaction(username);
     }
 
@@ -41,15 +41,11 @@ public class UserService {
        userrepo.raiseChequebook(username);
     }
 
-    public Map<String, Boolean> getChequebookrequest() {
-        return userrepo.getChequebookrequest();
-    }
-
-    public List<String> getAllchequebookrequest(){
+    public List<String> getAllchequebookrequest() throws  SQLException{
         return userrepo.getAllchequebookrequest();
     }
 
-    public void approvechequebook(String username) {
-        userrepo.approvechequebook(username);
+    public boolean approvechequebook(String username) throws SQLException {
+        return userrepo.approvechequebook(username);
     }
 }
