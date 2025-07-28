@@ -22,14 +22,14 @@ public class Main {
             System.out.println("Enter your password:");
             String password = scan.next();
 
-            String role = userService.login(username,password);
+            User role = userService.login(username,password);
 
-            if(role != null && role.equals("admin")) {
+            if(role != null && role.getRole().equals("admin")) {
                 System.out.println("You are logged into the system successfully");
                 main.initAdmin();
-            } else if (role != null && role.equals("user")) {
+            } else if (role != null && role.getRole().equals("user")) {
                 System.out.println("You are logged into the system successfully");
-                main.initCustomer(username);
+                main.initCustomer(role);
             } else {
                 System.out.println("Login failed !!!");
             }
@@ -96,14 +96,6 @@ public class Main {
 
     }
 
-    private boolean approvechequebook(String username) throws SQLException {
-        return userService.approvechequebook(username);
-    }
-
-    private List<String> getAllchequebookrequest() throws SQLException{
-        return userService.getAllchequebookrequest();
-    }
-
     private void addNewCustomer() {
         System.out.println("Enter username:");
         String username = scan.next();
@@ -129,7 +121,16 @@ public class Main {
 
     }
 
-    private void initCustomer(String user) {
+    private boolean approvechequebook(String username) throws SQLException {
+        return userService.approvechequebook(username);
+    }
+
+    private List<String> getAllchequebookrequest() throws SQLException{
+        return userService.getAllchequebookrequest();
+    }
+
+    private void initCustomer(User user) throws SQLException{
+        String username = user.getUsername();
         boolean flag = true;
 
         while(flag) {
@@ -141,41 +142,43 @@ public class Main {
 
             int opt = scan.nextInt();
 
-//            switch (opt) {
-//                case 1:
-//                    Double balance = main.checkAccountBalance(user.getUsername());
-//                    if(balance != null) {
-//                        System.out.println("Your Bank Balance is : "+balance);
-//                    } else {
-//                        System.out.println("Check your username");
-//                    }
-//                    break;
-//                case 2:
-//                    main.AmountTransfer(user);
-//                    break;
-//                case 3:
-//                    main.printTransaction(user.getUsername());
-//                    break;
-//                case 4:
-//                    String username = user.getUsername();
-//                    Map<String, Boolean> map = getChequebookrequest();
-//
-//                    if(map.containsKey(username) && map.get(username)) {
-//                        System.out.println("You have already raised a request and it is already approved.");
-//                    } else if(map.containsKey(username) && !map.get(username)) {
-//                        System.out.println("You have already raised a request and it is pending for approval !!");
-//                    } else {
-//                        main.raiseChequebook(username);
-//                        System.out.println("Request raised successfully...");
-//                    }
-//                    break;
-//                case 5:
-//                    flag = false;
-//                    System.out.println("You have successfully logged out...");
-//                    break;
-//                default:
-//                    System.out.println("Wrong choice");
-//            }
+            switch (opt) {
+                case 1:
+                    Double balance = main.checkAccountBalance(username);
+                    if(balance != null) {
+                        System.out.println("Your Bank Balance is : "+balance);
+                    } else {
+                        System.out.println("Check your username");
+                    }
+                    break;
+                case 2:
+                    main.AmountTransfer(user);
+                    break;
+                case 3:
+                    main.printTransaction(user.getUsername());
+                    break;
+                case 4:
+                    String userS = user.getUsername();
+                    Map<String, String> map = userService.getChequebookrequest(userS);
+
+                    if (map.containsKey(userS)) {
+                        String status = map.get(userS);
+                        if ("Approved".equalsIgnoreCase(status)) {
+                            System.out.println("You have already raised a request and it is already approved.");
+                        } else {
+                            System.out.println("You have already raised a request and it is pending for approval !!");
+                        }
+                    } else {
+                        main.raiseChequebook(userS);
+                    }
+                     break;
+                case 5:
+                    flag = false;
+                    System.out.println("You have successfully logged out...");
+                    break;
+                default:
+                    System.out.println("Wrong choice");
+            }
         }
 
     }
@@ -188,33 +191,33 @@ public class Main {
         userService.printTransaction(username);
     }
 
-    private void AmountTransfer(User userDetails) throws SQLException {
-        System.out.println("Enter receiver account username:");
-        String receiver = scan.next();
+    private void AmountTransfer(User userDetails) {
+        try {
+            System.out.println("Enter receiver account username:");
+            String receiver = scan.next();
 
-        User user = getUser(receiver);
-        if(user != null) {
-            System.out.println("Please enter amount to transfer:");
-            Double amt = scan.nextDouble();
+            User receiverUser = getUser(receiver);
+            if(receiverUser != null) {
+                System.out.println("Please enter amount to transfer:");
+                Double amt = scan.nextDouble();
 
-            Double userbalance = checkAccountBalance(userDetails.getUsername());
-            if(userbalance >= amt) {
-                boolean res = userService.transferAmount(userDetails.getUsername(),receiver,amt);
-                if(res) {
-                    System.out.println("Amount Transferred successfully.");
+                Double userbalance = checkAccountBalance(userDetails.getUsername());
+                if(userbalance >= amt) {
+                    boolean res = userService.transferAmount(userDetails.getUsername(), receiver, amt);
+                    System.out.println(res ? "Amount Transferred successfully." : "Transfer failed !!!");
                 } else {
-                    System.out.println("Transfer failed !!!");
+                    System.out.println("Your balance is insufficient: " + userbalance);
                 }
             } else {
-                System.out.println("Your balance is insufficient: "+userbalance);
+                System.out.println("Please enter a valid username.");
             }
-
-        } else {
-            System.out.println("Please enter a valid username.");
+        } catch (SQLException e) {
+            System.out.println("DB Error: " + e.getMessage());
         }
     }
 
-    private User getUser(String username) {
+
+    private User getUser(String username) throws  SQLException{
         return userService.getUser(username);
     }
 

@@ -11,9 +11,9 @@ public class UserService {
 
     private final UserRepository userrepo = new UserRepository();
 
-    public void printUser() { userrepo.printUsers(); }
 
-    public String login(String username, String password) throws SQLException {
+
+    public User login(String username, String password) throws SQLException {
        return userrepo.login( username,password);
     }
 
@@ -25,11 +25,11 @@ public class UserService {
         return userrepo.checkAccountBalance(username);
     }
 
-    public User getUser(String username) {
+    public User getUser(String username) throws SQLException {
         return userrepo.getUser(username);
     }
 
-    public boolean transferAmount(String username, String receivername, Double amt) {
+    public boolean transferAmount(String username, String receivername, Double amt) throws SQLException {
         return userrepo.transferAmount(username,receivername,amt);
     }
 
@@ -37,8 +37,8 @@ public class UserService {
       userrepo.printTransaction(username);
     }
 
-    public void raiseChequebook(String username) {
-       userrepo.raiseChequebook(username);
+    public boolean raiseChequebook(String username) {
+       return userrepo.raiseChequebook(username);
     }
 
     public List<String> getAllchequebookrequest() throws  SQLException{
@@ -47,5 +47,9 @@ public class UserService {
 
     public boolean approvechequebook(String username) throws SQLException {
         return userrepo.approvechequebook(username);
+    }
+
+    public Map<String, String> getChequebookrequest(String username) throws SQLException {
+        return userrepo.getChequebookrequest(username);
     }
 }

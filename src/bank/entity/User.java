@@ -50,10 +50,6 @@ public class User {
         return role;
     }
 
-    public void setRole(String role) {
-        this.role = role;
-    }
-
     public double getAccountBalance() {
         return accountBalance;
     }
@@ -69,7 +65,6 @@ public class User {
     public String getEmail() {
         return email;
     }
-
 
     @Override
     public String toString() {
