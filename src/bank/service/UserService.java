@@ -9,47 +9,56 @@ import java.util.Map;
 
 public class UserService {
 
-    private final UserRepository userrepo = new UserRepository();
-
-
+    private final UserRepository userrepository = new UserRepository();
 
     public User login(String username, String password) throws SQLException {
-       return userrepo.login( username,password);
+       return userrepository.login( username,password);
     }
 
     public boolean addNewCustomer(String username, String password, String contact,Double amt,String email) throws SQLException {
-        return userrepo.addNewCustomer(username,password,contact,amt,email);
+        return userrepository.addNewCustomer(username,password,contact,amt,email);
+    }
+
+    public void PrintUserDetails() throws SQLException {
+        userrepository.PrintUserDetails();
     }
 
     public Double checkAccountBalance(String username)  throws SQLException{
-        return userrepo.checkAccountBalance(username);
+        return userrepository.checkAccountBalance(username);
     }
 
     public User getUser(String username) throws SQLException {
-        return userrepo.getUser(username);
+        return userrepository.getUser(username);
     }
 
-    public boolean transferAmount(String username, String receivername, Double amt) throws SQLException {
-        return userrepo.transferAmount(username,receivername,amt);
+    public boolean transferAmount(String username, String receiver_name, Double amt) throws SQLException {
+        return userrepository.transferAmount(username,receiver_name,amt);
     }
 
     public void printTransaction(String username) throws SQLException {
-      userrepo.printTransaction(username);
+      userrepository.printTransaction(username);
     }
 
-    public boolean raiseChequebook(String username) {
-       return userrepo.raiseChequebook(username);
+    public void raiseChequebook(String username) throws SQLException {
+        userrepository.raiseChequebook(username);
     }
 
     public List<String> getAllchequebookrequest() throws  SQLException{
-        return userrepo.getAllchequebookrequest();
+        return userrepository.getAllchequebookrequest();
     }
 
     public boolean approvechequebook(String username) throws SQLException {
-        return userrepo.approvechequebook(username);
+        return userrepository.approvechequebook(username);
     }
 
     public Map<String, String> getChequebookrequest(String username) throws SQLException {
-        return userrepo.getChequebookrequest(username);
+        return userrepository.getChequebookrequest(username);
+    }
+    public boolean checkPassword(String username, String password) throws SQLException {
+        return userrepository.checkPassword(username, password);
+    }
+
+    public boolean updatePassword(String username, String password) throws SQLException {
+        return userrepository.updatePassword(username, password);
     }
 }

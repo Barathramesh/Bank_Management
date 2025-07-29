@@ -4,10 +4,9 @@ import bank.entity.Transaction;
 import bank.entity.User;
 import bank.service.DbConnection;
 
+import java.security.SecureRandom;
 import java.sql.*;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class UserRepository {
@@ -60,31 +59,22 @@ public class UserRepository {
         return chequeStatus;
     }
 
+    public void raiseChequebook(String username) throws SQLException {
+            String query = "SELECT status FROM chequebook_requests WHERE username = ?";
 
-
-
-    public boolean raiseChequebook(String username) {
-        try {
             Connection con = DbConnection.getConnection();
-
-            String checkQuery = "SELECT status FROM chequebook_requests WHERE username = ?";
-            PreparedStatement checkPst = con.prepareStatement(checkQuery);
-            checkPst.setString(1, username);
-            ResultSet rs = checkPst.executeQuery();
+            PreparedStatement pst = con.prepareStatement(query);
+            pst.setString(1, username);
+            ResultSet rs = pst.executeQuery();
 
             if (rs.next()) {
                 String status = rs.getString("status");
 
                 if ("Pending".equalsIgnoreCase(status)) {
                     System.out.println("You have already raised a request. It is pending for approval.");
-                    return false;
                 } else if ("Approved".equalsIgnoreCase(status)) {
                     System.out.println("You have already raised a request and it is approved.");
-                    return false;
-                } else {
-                    return false;
                 }
-
             } else {
                 String insertQuery = "INSERT INTO chequebook_requests (username, chequebook_request) VALUES (?, ?)";
                 PreparedStatement insertPst = con.prepareStatement(insertQuery);
@@ -93,13 +83,8 @@ public class UserRepository {
                 insertPst.executeUpdate();
 
                 System.out.println("Request raised successfully...");
-                return true;
             }
 
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
     }
 
     public boolean transferAmount(String sender, String receiver, Double amt) throws SQLException {
@@ -140,10 +125,12 @@ public class UserRepository {
     }
 
     private boolean insertTransaction(Transaction txn) throws SQLException {
-        String query = "INSERT INTO transactions (transaction_date, sender_username, amount, transaction_type, initial_balance, final_balance, receiver_username) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String query = "INSERT INTO transactions (transaction_date, sender_username, amount, transaction_type, " +
+                "initial_balance, final_balance, receiver_username) VALUES (?, ?, ?, ?, ?, ?, ?)";
+
         Connection con = DbConnection.getConnection();
         PreparedStatement pst = con.prepareStatement(query);
-        pst.setDate(1, java.sql.Date.valueOf(txn.getTransactionDate()));
+        pst.setTimestamp(1, java.sql.Timestamp.valueOf(txn.getTransactionDate()));
         pst.setString(2, txn.getTransactionUsername());
         pst.setDouble(3, txn.getTransactionAmount());
         pst.setString(4, txn.getTransactionType());
@@ -153,7 +140,7 @@ public class UserRepository {
         return pst.executeUpdate() > 0;
     }
 
-    private boolean debit(String username, Double amt, String receivername) throws SQLException {
+    private boolean debit(String username, Double amt, String receiver_name) throws SQLException {
         User user = getUser(username);
         if (user == null) return false;
 
@@ -164,37 +151,37 @@ public class UserRepository {
         if (!updated) return false;
 
         Transaction txn = new Transaction(
-                LocalDate.now(),
+                LocalDateTime.now(),
                 username,
                 amt,
-                "Debit",
+                "Debited",
                 accountBalance,
                 finalBalance,
-                receivername
+                receiver_name
         );
 
         return insertTransaction(txn);
     }
 
 
-    private boolean credit(String receivername, Double amt, String sendername) throws SQLException {
-        User user = getUser(receivername);
+    private boolean credit(String receiver_name, Double amt, String sender_name) throws SQLException {
+        User user = getUser(receiver_name);
         if (user == null) return false;
 
         Double accountBalance = user.getAccountBalance();
         double finalBalance = accountBalance + amt;
 
-        boolean updated = updateBalance(receivername, finalBalance);
+        boolean updated = updateBalance(receiver_name, finalBalance);
         if (!updated) return false;
 
         Transaction txn = new Transaction(
-                LocalDate.now(),
-                receivername,
+                LocalDateTime.now(),
+                receiver_name,
                 amt,
-                "Credit",
+                "Credited",
                 accountBalance,
                 finalBalance,
-                sendername
+                sender_name
         );
 
         return insertTransaction(txn);
@@ -214,17 +201,18 @@ public class UserRepository {
 
         while(rs.next()) {
             if (!hasData) {
-                System.out.println("Date \t\tUsername \t Amount \t Type \t InitialBalance \t FinalBalance");
-                System.out.println("------------------------------------------------------------------------------");
+                System.out.println("Date \t\t\t\t\tSender name \tAmount \t\t Type  \t\tReceiver name \tInitialBalance \t FinalBalance");
+                System.out.println("-------------------------------------------------------------------------------------------------------------");
                 hasData = true;
             }
 
             System.out.println(
-                    rs.getString(8) + "\t"
-                    + rs.getString(2) + "\t\t"
+                    rs.getString(8) + "\t\t"
+                    + rs.getString(2) + "\t\t\t"
                     + rs.getDouble(4) + "\t\t"
                     + rs.getString(7) + "\t\t"
-                    + rs.getDouble(5) + "\t\t\t\t"
+                    + rs.getString(3)+ "\t\t\t"
+                    + rs.getDouble(5) + "\t\t\t "
                     + rs.getDouble(6)
             );
         }
@@ -232,10 +220,9 @@ public class UserRepository {
         if (!hasData) {
             System.out.println("No transactions found for user Or invalid username");
         } else {
-            System.out.println("-------------------------------------------------------------------------------");
+            System.out.println("-------------------------------------------------------------------------------------------------------------");
         }
     }
-
 
     public Double checkAccountBalance(String username) throws SQLException {
        String query = "Select account_balance from users where username = ?";
@@ -261,23 +248,28 @@ public class UserRepository {
         if(rs.next()) {
 
            String AccountNumber = rs.getString("account_number");
-            String Username = rs.getString("username");
+           String Username = rs.getString("username");
            String Password = rs.getString("password");
-            String ContactNum = rs.getString("contact_number");
+           String ContactNum = rs.getString("contact_number");
            String Email = rs.getString("email");
-            Double AccountBalance = rs.getDouble("account_balance");
-            String Role = rs.getString("role");
-            return new User(Username, Password, ContactNum,Role,AccountBalance,AccountNumber,Email);
+           Double AccountBalance = rs.getDouble("account_balance");
+           String Role = rs.getString("role");
+           return new User(Username, Password, ContactNum,Role,AccountBalance,AccountNumber,Email);
         } else {
             return null;
         }
     }
 
     public boolean addNewCustomer(String username, String password, String contact,Double amt,String email) throws SQLException {
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyMMddHHmmss");
-        String timestamp = LocalDateTime.now().format(dtf);
-        int random = new Random().nextInt(9000) + 1000;
-        String accountNumber = "AC"+timestamp+random;
+        SecureRandom random = new SecureRandom();
+        StringBuilder sb = new StringBuilder();
+        sb.append(random.nextInt(9) + 1);
+
+        for (int i = 0; i < 15; i++) {
+            sb.append(random.nextInt(10));
+        }
+
+        String accountNumber = sb.toString();
         String role = "user";
 
         User user = new User(username,password,contact,role,amt,accountNumber,email);
@@ -288,6 +280,24 @@ public class UserRepository {
             return rowsAffected > 0;
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public void PrintUserDetails() throws SQLException {
+        String query = "Select * from users ORDER BY created_at DESC Limit 1";
+        Connection con = DbConnection.getConnection();
+        Statement st = con.createStatement();
+        ResultSet rs = st.executeQuery(query);
+
+        while(rs.next()) {
+            System.out.println();
+            System.out.println("Account Number: "+rs.getString(2));
+            System.out.println("Username: "+rs.getString(3));
+            System.out.println("Password: "+rs.getString(4));
+            System.out.println("Account Balance: "+rs.getString(7));
+            System.out.println("Email Id: "+rs.getString(6));
+            System.out.println("Contact Number: "+rs.getString(5));
+            System.out.println();
         }
     }
 
@@ -302,6 +312,32 @@ public class UserRepository {
         pst.setDouble(6, user.getAccountBalance());
         pst.setString(7, user.getRole());
         return pst.executeUpdate();
+    }
+
+   public  boolean checkPassword(String username, String password) throws SQLException {
+        String query = "Select * from users where username = ?";
+        Connection con = DbConnection.getConnection();
+        PreparedStatement pst = con.prepareStatement(query);
+        pst.setString(1,username);
+        ResultSet rs = pst.executeQuery();
+
+        while(rs.next()) {
+            String currentPassword = rs.getString(4);
+            if(currentPassword.equals(password)) {
+                return true;
+            }
+        }
+       return false;
+   }
+
+    public boolean updatePassword(String username, String password) throws SQLException {
+       String query = "Update users SET password = ? where username = ?";
+        Connection con = DbConnection.getConnection();
+        PreparedStatement pst = con.prepareStatement(query);
+        pst.setString(1,password);
+        pst.setString(2,username);
+        int rows = pst.executeUpdate();
+        return rows > 0;
     }
 
 }

@@ -35,8 +35,8 @@ public class Main {
             }
         }
 
-
     }
+
 
     private  void initAdmin()  throws SQLException{
         boolean flag = true;
@@ -46,7 +46,7 @@ public class Main {
             System.out.println("1. Create a customer account");
             System.out.println("2. See customer's all Transactions");
             System.out.println("3. Check account balance");
-            System.out.println("4. Approve cheque book request ");
+            System.out.println("4. Approve cheque book request");
             System.out.println("5. Logout");
 
             int opt = scan.nextInt();
@@ -96,6 +96,7 @@ public class Main {
 
     }
 
+
     private void addNewCustomer() {
         System.out.println("Enter username:");
         String username = scan.next();
@@ -112,6 +113,7 @@ public class Main {
             boolean res = userService.addNewCustomer(username, password, contact, amt,email);
             if (res) {
                 System.out.println("Customer account is created...");
+                main.PrintUserDetails();
             } else {
                 System.out.println("Customer account creation failed !!!");
             }
@@ -119,6 +121,14 @@ public class Main {
             System.out.println("Error while creating customer account: " + e.getMessage());
         }
 
+    }
+
+    private void PrintUserDetails() throws SQLException {
+        userService.PrintUserDetails();
+    }
+
+    private void printTransaction(String username) throws SQLException {
+        userService.printTransaction(username);
     }
 
     private boolean approvechequebook(String username) throws SQLException {
@@ -129,6 +139,11 @@ public class Main {
         return userService.getAllchequebookrequest();
     }
 
+    private Double checkAccountBalance(String username) throws  SQLException {
+        return userService.checkAccountBalance(username);
+    }
+
+
     private void initCustomer(User user) throws SQLException{
         String username = user.getUsername();
         boolean flag = true;
@@ -138,7 +153,8 @@ public class Main {
             System.out.println("2. Amount transfer:");
             System.out.println("3. Transaction History:");
             System.out.println("4. Raise chequebook rquest:");
-            System.out.println("5. Logout");
+            System.out.println("5. Change Password:");
+            System.out.println("6. Logout");
 
             int opt = scan.nextInt();
 
@@ -173,6 +189,27 @@ public class Main {
                     }
                      break;
                 case 5:
+                    System.out.println("Enter your current password:");
+                    String currentPassword = scan.next();
+                    if(checkPassword(username,currentPassword)) {
+                        System.out.println("Enter new password:");
+                        String newPassword = scan.next();
+                        System.out.println("Enter new password again to confirm:");
+                        String confirmPassword = scan.next();
+                        if(newPassword.equals(confirmPassword)) {
+                            if(updatePassword(username,newPassword)) {
+                                System.out.println("Password reset successfully..");
+                            } else {
+                                System.out.println("There is an error!!!");
+                            }
+                        } else {
+                            System.out.println("Please enter password correctly");
+                        }
+                    } else {
+                        System.out.println("Please enter your password correctly");
+                    }
+                    break;
+                case 6:
                     flag = false;
                     System.out.println("You have successfully logged out...");
                     break;
@@ -183,13 +220,6 @@ public class Main {
 
     }
 
-    private void raiseChequebook(String username) {
-        userService.raiseChequebook(username);
-    }
-
-    private void printTransaction(String username) throws SQLException {
-        userService.printTransaction(username);
-    }
 
     private void AmountTransfer(User userDetails) {
         try {
@@ -216,13 +246,20 @@ public class Main {
         }
     }
 
+    private void raiseChequebook(String username) throws SQLException {
+        userService.raiseChequebook(username);
+    }
+
+    private boolean checkPassword(String username, String password) throws SQLException {
+        return userService.checkPassword(username, password);
+    }
+
+    private boolean updatePassword(String username, String password) throws SQLException {
+        return userService.updatePassword(username, password);
+    }
 
     private User getUser(String username) throws  SQLException{
         return userService.getUser(username);
-    }
-
-    private Double checkAccountBalance(String username) throws  SQLException {
-        return userService.checkAccountBalance(username);
     }
 
 }

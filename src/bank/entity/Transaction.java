@@ -1,10 +1,10 @@
 package bank.entity;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class Transaction {
 
-    private LocalDate transactionDate;
+    private LocalDateTime transactionDate;
     private String transactionUsername;
     private Double transactionAmount;
     private String transactionType;
@@ -12,7 +12,7 @@ public class Transaction {
     private Double finalBalance;
     private String transactionPerformedBy;
 
-    public Transaction(LocalDate transactionDate, String transactionUsername, Double transactionAmount, String transactionType, Double initialBalance, Double finalBalance, String transactionPerformedBy) {
+    public Transaction(LocalDateTime transactionDate, String transactionUsername, Double transactionAmount, String transactionType, Double initialBalance, Double finalBalance, String transactionPerformedBy) {
         this.transactionDate = transactionDate;
         this.transactionUsername = transactionUsername;
         this.transactionAmount = transactionAmount;
@@ -22,11 +22,11 @@ public class Transaction {
         this.transactionPerformedBy = transactionPerformedBy;
     }
 
-    public LocalDate getTransactionDate() {
+    public LocalDateTime getTransactionDate() {
         return transactionDate;
     }
 
-    public void setTransactionDate(LocalDate transactionDate) {
+    public void setTransactionDate(LocalDateTime transactionDate) {
         this.transactionDate = transactionDate;
     }
 
