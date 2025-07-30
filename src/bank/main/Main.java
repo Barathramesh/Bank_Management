@@ -47,7 +47,8 @@ public class Main {
             System.out.println("2. See customer's all Transactions");
             System.out.println("3. Check account balance");
             System.out.println("4. Approve cheque book request");
-            System.out.println("5. Logout");
+            System.out.println("5. Delete an account");
+            System.out.println("6. Logout");
 
             int opt = scan.nextInt();
 
@@ -86,6 +87,19 @@ public class Main {
                     }
                     break;
                 case 5:
+                    System.out.println("Enter an account number:");
+                    String accountNumber = scan.next();
+                    System.out.println("Enter username:");
+                    String user = scan.next();
+                    if(userExistOrNot(user,accountNumber)) {
+                        if(main.deleteUserDetails(user,accountNumber)) {
+                            System.out.println("Account was deleted successfully...");
+                        }
+                    } else {
+                        System.out.println("Invalid user details!!!");
+                    }
+                    break;
+                case 6:
                     flag = false;
                     System.out.println("You have successfully logged out...");
                     break;
@@ -96,6 +110,13 @@ public class Main {
 
     }
 
+    private boolean userExistOrNot(String username, String accountNumber) throws SQLException {
+        return userService.userExistOrNot(username,accountNumber);
+    }
+
+    private boolean deleteUserDetails(String username, String accountNumber) throws SQLException {
+        return userService.deleteUserDetails(username,accountNumber);
+    }
 
     private void addNewCustomer() {
         System.out.println("Enter username:");

@@ -12,7 +12,7 @@ public class UserService {
     private final UserRepository userrepository = new UserRepository();
 
     public User login(String username, String password) throws SQLException {
-       return userrepository.login( username,password);
+       return userrepository.login(username,password);
     }
 
     public boolean addNewCustomer(String username, String password, String contact,Double amt,String email) throws SQLException {
@@ -60,5 +60,13 @@ public class UserService {
 
     public boolean updatePassword(String username, String password) throws SQLException {
         return userrepository.updatePassword(username, password);
+    }
+
+    public boolean userExistOrNot(String username, String accountNumber) throws SQLException {
+        return userrepository.userExistOrNot(username,accountNumber);
+    }
+
+    public boolean deleteUserDetails(String username, String accountNumber) throws SQLException {
+        return userrepository.deleteUserDetails(username,accountNumber);
     }
 }

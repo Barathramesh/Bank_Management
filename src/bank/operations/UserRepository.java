@@ -8,6 +8,7 @@ import java.security.SecureRandom;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.*;
+import org.mindrot.jbcrypt.BCrypt;
 
 public class UserRepository {
 
@@ -238,23 +239,28 @@ public class UserRepository {
        }
     }
 
-    public User login (String username, String password) throws SQLException {
-        String query = "select * from users where username = ? and password = ?";
+    public User login(String username, String password) throws SQLException {
+        String query = "SELECT * FROM users WHERE username = ?";
         Connection con = DbConnection.getConnection();
         PreparedStatement pst = con.prepareStatement(query);
         pst.setString(1, username);
-        pst.setString(2, password);
         ResultSet rs = pst.executeQuery();
-        if(rs.next()) {
 
-           String AccountNumber = rs.getString("account_number");
-           String Username = rs.getString("username");
-           String Password = rs.getString("password");
-           String ContactNum = rs.getString("contact_number");
-           String Email = rs.getString("email");
-           Double AccountBalance = rs.getDouble("account_balance");
-           String Role = rs.getString("role");
-           return new User(Username, Password, ContactNum,Role,AccountBalance,AccountNumber,Email);
+        if (rs.next()) {
+            String hashedPassword = rs.getString("password");
+
+            if (BCrypt.checkpw(password, hashedPassword)) {
+                String AccountNumber = rs.getString("account_number");
+                String Username = rs.getString("username");
+                String ContactNum = rs.getString("contact_number");
+                String Email = rs.getString("email");
+                Double AccountBalance = rs.getDouble("account_balance");
+                String Role = rs.getString("role");
+
+                return new User(Username, hashedPassword, ContactNum, Role, AccountBalance, AccountNumber, Email);
+            } else {
+                return null;
+            }
         } else {
             return null;
         }
@@ -271,8 +277,9 @@ public class UserRepository {
 
         String accountNumber = sb.toString();
         String role = "user";
+        String hashed = BCrypt.hashpw(password, BCrypt.gensalt());
 
-        User user = new User(username,password,contact,role,amt,accountNumber,email);
+        User user = new User(username,hashed,contact,role,amt,accountNumber,email);
         String query = "INSERT INTO users (account_number, username, password, contact_number, email, account_balance,role) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try {
@@ -293,7 +300,7 @@ public class UserRepository {
             System.out.println();
             System.out.println("Account Number: "+rs.getString(2));
             System.out.println("Username: "+rs.getString(3));
-            System.out.println("Password: "+rs.getString(4));
+            //System.out.println("Password: "+rs.getString(4));
             System.out.println("Account Balance: "+rs.getString(7));
             System.out.println("Email Id: "+rs.getString(6));
             System.out.println("Contact Number: "+rs.getString(5));
@@ -322,8 +329,8 @@ public class UserRepository {
         ResultSet rs = pst.executeQuery();
 
         while(rs.next()) {
-            String currentPassword = rs.getString(4);
-            if(currentPassword.equals(password)) {
+            String hashedPassword = rs.getString(4);
+            if(BCrypt.checkpw(password, hashedPassword)) {
                 return true;
             }
         }
@@ -334,8 +341,30 @@ public class UserRepository {
        String query = "Update users SET password = ? where username = ?";
         Connection con = DbConnection.getConnection();
         PreparedStatement pst = con.prepareStatement(query);
-        pst.setString(1,password);
+        String hashed = BCrypt.hashpw(password, BCrypt.gensalt());
+
+        pst.setString(1,hashed);
         pst.setString(2,username);
+        int rows = pst.executeUpdate();
+        return rows > 0;
+    }
+
+    public boolean userExistOrNot(String username, String accountNumber) throws SQLException {
+      String query = "Select * from users Where username = ? And account_number = ?";
+      Connection con = DbConnection.getConnection();
+      PreparedStatement pst = con.prepareStatement(query);
+      pst.setString(1,username);
+      pst.setString(2,accountNumber);
+      ResultSet rs = pst.executeQuery();
+      return rs.next();
+    }
+
+    public boolean deleteUserDetails(String username, String accountNumber) throws SQLException {
+        String query = "Delete from users Where username = ? And account_number = ?";
+        Connection con = DbConnection.getConnection();
+        PreparedStatement pst = con.prepareStatement(query);
+        pst.setString(1,username);
+        pst.setString(2,accountNumber);
         int rows = pst.executeUpdate();
         return rows > 0;
     }
